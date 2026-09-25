@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, UseInterceptors } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('rooms')
 export class RoomsController {
@@ -18,12 +19,16 @@ export class RoomsController {
     return this.roomsService.create(createRoomDto);
   }
 
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(300)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   findAll() {
     return this.roomsService.findAll();
   }
 
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(300)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: string) {
